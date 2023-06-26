@@ -1,0 +1,58 @@
+import requests
+import telebot
+from time import sleep
+from bs4 import BeautifulSoup as b
+
+game_list = set()
+
+def find_matches():
+    online_games_list = ['https://soccer365.ru' + link.find('a').get('href') for link in b(requests.get('https://soccer365.ru/online/&tab=1').text, 'lxml').find_all('div', class_='game_block online') if 'live' in link.find('a').get('href')]
+    # all_games_list = ['https://soccer365.ru' + link.find('a').get('href') for link in b(requests.get('https://soccer365.ru/online/&tab=1').text, 'lxml').find_all('div', class_='game_block online')]
+    return online_games_list
+
+def get_info_from_game(game_link):
+    game = b(requests.get(game_link).text, 'lxml') # url
+
+    teamleft = game.find('div', class_='live_game_ht').text # names
+    teamright = game.find('div', class_='live_game_at').text
+
+    goals = [goal.text for goal in game.find_all('div', class_="live_game_goal")] # goals
+    left_goal = int(goals[0])
+    right_goal = int(goals[1])
+
+    time = game.find('div', class_='live_game_status') # time
+    if time is not None and 'Перерыв' not in time.text:
+        time = str(time.text)[1:-6]
+
+
+    try: koeffleft, koeffright = [koeff for koeff in game.find_all('span', class_="koeff").text] # koeff (not always)
+    except Exception: pass
+
+    try:  # Melbet coeff
+        Melbet = [i.find_all('div', class_='odds_coeff') for i in game.find_all('div', class_='odds_item odds_logo') if
+                  i.find_all('div', class_='odds_coeff') and 'Melbet' in i.text]
+        Melbet_left_coeff = Melbet[0][0].text
+        Melbet_right_coeff = Melbet[0][2].text
+    except Exception:
+        pass
+
+    try: # events
+        event_goal_teamleft = [int(i.find("div", class_="event_min").text[:-1]) for i in [i for i in game.find('div', class_='block_body_nopadding padv15').find_all('div', class_='') if i.find('div', class_='event_ht_icon live_goal')]]
+        event_goal_teamright = [int(i.find("div", class_="event_min").text[:-1]) for i in [i for i in game.find('div', class_='block_body_nopadding padv15').find_all('div', class_='') if i.find('div', class_='event_at_icon live_goal')]]
+    except Exception: pass
+
+
+
+
+def start():
+    print('blob')
+    try:
+        while True:
+            for i in find_matches():
+                get_info_from_game(i)
+            sleep(150)
+    except Exception:
+        start()
+
+
+start()
