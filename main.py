@@ -7,7 +7,7 @@ game_list = set()
 dict_for_1st_strategy = dict()
 dict_for_2nd_strategy = dict()
 dict_for_3rd_strategy = dict()
-tgBot = telebot.TeleBot('5061487172:AAFgTi1TN_WfNAJu3jQyb666MWosv6JJpms')
+tgBot = telebot.TeleBot('TOKEN')
 
 
 # def find_matches():
